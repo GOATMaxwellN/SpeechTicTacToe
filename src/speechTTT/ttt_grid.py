@@ -15,18 +15,22 @@ class TTTGrid(Canvas):
         super().__init__(root, options)
 
     def draw_grid(self):
-        """Draws an empty ttt grid for the start of the game."""
+        """Draws an empty ttt grid for the start of the game.
+        
+        First creates the bounding square for the grid then makes
+        the lines."""
         # Get height and width of canvas.
         w, h = self.winfo_width(), self.winfo_height()
 
         # When setting dimensions for the grid, the screen's height will
         # be the main factor. Height will be offset from canvas by a constant
-        # amount, and width will be offset from canvas to match heigth.
+        # amount, then width will be offset from canvas to match heigth length.
         grid_y = 0 + self.Y_OFFSET, h - self.Y_OFFSET
         # Required width offset to match height
         x_offset = self._get_required_width_offset(w, (grid_y[1] - grid_y[0]))
         grid_x = 0 + x_offset, w - x_offset
 
+        # Draw the bounding square
         self.create_rectangle(grid_x[0], grid_y[0], grid_x[1], grid_y[1], outline='black')
 
     def _get_required_width_offset(self, width: int, height_to_match: int) -> int:
