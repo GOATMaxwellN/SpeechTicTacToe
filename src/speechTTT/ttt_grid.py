@@ -58,7 +58,7 @@ class TTTGrid(Canvas):
         self.create_line(o[0], o[1] + gap, o[2], o[1] + gap)
         self.create_line(o[0], o[1] + 2*gap, o[2], o[1] + 2*gap)
 
-    def draw_squares(self):
+    def draw_squares(self) -> list[int]:
         """Draws invisible squares that will be used to detect when user clicks on a
         cell on the tic-tac-toe grid.
         
@@ -81,10 +81,10 @@ class TTTGrid(Canvas):
                 outline="")  # outline="" gives no outline to the rectangle, would default to black.
             squares.append(rect_id)
 
-            row += 1
-            if row % 3 == 0:
-                row = 0
-                col += 1
+            col += 1
+            if col % 3 == 0:
+                col = 0
+                row += 1
         
         return squares
 
