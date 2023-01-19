@@ -3,6 +3,7 @@ Module that handles the application window.
 """
 
 from ttt_grid import TTTGrid
+from game_logic import TTTGame
 from tkinter import *
 from tkinter.ttk import *
 
@@ -82,3 +83,4 @@ class Window(Tk):
         self.ttt_grid = TTTGrid(game_screen, background='pink')
         self.ttt_grid.grid(column=0, row=0, sticky="NSEW")
         
+        game = TTTGame(self.ttt_grid)
