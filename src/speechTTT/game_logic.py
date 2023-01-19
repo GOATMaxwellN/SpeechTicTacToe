@@ -1,5 +1,4 @@
 """This module holds the TTTGame class, which handles the logic"""
-from functools import partial
 from ttt_grid import TTTGrid
 
 class TTTGame:
