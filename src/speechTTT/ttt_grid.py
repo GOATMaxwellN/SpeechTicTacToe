@@ -95,11 +95,16 @@ class TTTGrid(Canvas):
 
     def add_x(self, cell: int) -> None:
         """Adds an X to the specified cell."""
-        pass
+        o = self.coords(self.squares[cell])
+        m = 10  # Margin from corners of the square
+        self.create_line(o[0]+m, o[1]+m, o[2]-m, o[3]-m, fill="red", width=5)
+        self.create_line(o[2]-m, o[1]+m, o[0]+m, o[3]-m, fill="red", width=5)
 
     def add_o(self, cell: int) -> None:
         """Adds an O to the specified cell."""
-        pass
+        o = self.coords(self.squares[cell])
+        m = 10  # Margin from corners of the square
+        self.create_oval(o[0]+m, o[1]+m, o[2]-m, o[3]-m, outline="blue", width=5)
 
     def grid(self, **options) -> None:
         """Adds TTTGrid to root element with grid geometry manager and 

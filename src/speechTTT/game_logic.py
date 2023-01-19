@@ -18,11 +18,17 @@ class TTTGame:
     """
 
     def __init__(self, grid: TTTGrid):
+        self.grid = grid
+        self.setup_binds()
+
+        # Mouse variables
         self.cell_pressed = -1
         self.mouse_pressed_down = False
         self.ignore_release = False
-        self.grid = grid
-        self.setup_binds()
+
+        # Game variables
+        self.squares = ["", "", "", "", "", "", "", "", ""]
+        self.turn = "x"
 
     def setup_binds(self) -> None:
         """Bind the invisible squares on the grid to the user_clicked() when they
@@ -31,28 +37,43 @@ class TTTGame:
             # Issues with late binding forced me to define a new function with 'i'
             # as a default argument so each cell would be called with the correct
             # cell number.
-            def _user_clicked(event, cell=i):
-                self.user_clicked(event, cell)
+            def _button_release(event, cell=i):
+                self.button_release(event, cell)
             def _button_press(event, cell=i):
                 self.button_press(event, cell)
             def _mouse_enter_cell(event, cell=i):
                 self.mouse_enter_cell(event, cell)
 
             cell = self.grid.squares[i]
-            self.grid.tag_bind(cell, sequence="<Button1-ButtonRelease>", func=_user_clicked)
+            self.grid.tag_bind(cell, sequence="<Button1-ButtonRelease>", func=_button_release)
             self.grid.tag_bind(cell, sequence="<Button-1>", func=_button_press)
             self.grid.tag_bind(cell, sequence="<Enter>", func=_mouse_enter_cell)
             self.grid.tag_bind(cell, sequence="<Leave>", func=self.mouse_leave_cell)
 
-    def user_clicked(self, event: Event, cell: int) -> None:
+    def button_release(self, event: Event, cell: int) -> None:
         """Function called when the mouse of a user is released."""
+        # Reset mouse variables
         self.mouse_pressed_down = False
         self.cell_pressed = -1
         if self.ignore_release:
             self.ignore_release = False
             return
         
-        print(event, f"Cell {cell}")
+        # Check if cell is empty
+        if self.squares[cell] == "":
+            self.squares[cell] = self.turn
+            if self.turn == "x":
+                self.grid.add_x(cell)
+                self.turn = "o"
+            else:
+                self.grid.add_o(cell)
+                self.turn = "x"
+        else:
+            # Cell is not empty, so they can't place a symbol here
+            pass
+
+        print(self.squares)
+        
 
     def button_press(self, event: Event, cell: int) -> None:
         """Function called when the mouse of a user is pressed."""
