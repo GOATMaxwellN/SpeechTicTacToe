@@ -2,6 +2,8 @@
 Starts the application.
 """
 from window import Window
+import speech_rec
+from threading import Thread
 
 
 def start() -> None:
@@ -11,6 +13,7 @@ def start() -> None:
     its event loop.
     """
     win = Window()
+    speech_rec.init()
     win.mainloop()
 
 

@@ -1,6 +1,8 @@
 """This module holds the TTTGame class, which handles the logic"""
 from ttt_grid import TTTGrid
 from tkinter import Event  # For typing purposes.
+import speech_rec as sr
+import threading
 
 class TTTGame:
     """This class handles game logic.
@@ -17,6 +19,12 @@ class TTTGame:
         Canvas class representing the tic-tac-toe grid.
     """
 
+    # FOR VOICE COMMANDS
+    # Key is the hotword. Value is the cell number
+    CELL_HOTWORDS = {
+        "center": 4
+    }
+
     def __init__(self, grid: TTTGrid):
         self.grid = grid
         self.setup_binds()
@@ -26,9 +34,15 @@ class TTTGame:
         self.mouse_pressed_down = False
         self.ignore_release = False
 
+        # Audio variables
+        self.cell_from_voice = -1
+
         # Game variables
         self.squares = ["", "", "", "", "", "", "", "", ""]
         self.turn = "x"
+
+        mic_thread = threading.Thread(target=self.listen)
+        mic_thread.start()
 
     def setup_binds(self) -> None:
         """Bind the invisible squares on the grid to the user_clicked() when they
@@ -49,16 +63,18 @@ class TTTGame:
             self.grid.tag_bind(cell, sequence="<Button-1>", func=_button_press)
             self.grid.tag_bind(cell, sequence="<Enter>", func=_mouse_enter_cell)
             self.grid.tag_bind(cell, sequence="<Leave>", func=self.mouse_leave_cell)
-
-    def button_release(self, event: Event, cell: int) -> None:
-        """Function called when the mouse of a user is released."""
-        # Reset mouse variables
-        self.mouse_pressed_down = False
-        self.cell_pressed = -1
-        if self.ignore_release:
-            self.ignore_release = False
-            return
         
+        # Bind custom event <<Voice-Command>> to the grid
+        self.grid.bind("<<Voice-Command>>", lambda event: self.play_turn(-1))
+
+    def play_turn(self, cell: int) -> None:
+        """Depending on whoever's turn it is, adds an X or O to the specified cell."""
+        # If cell is -1, that means that user made a voice command
+        # and cell number can be found in self.cell_from_voice.
+        if cell == -1:
+            cell = self.cell_from_voice
+            self.cell_from_voice = -1  # Reset it.
+
         # Check if cell is empty
         if self.squares[cell] == "":
             self.squares[cell] = self.turn
@@ -73,7 +89,17 @@ class TTTGame:
             pass
 
         print(self.squares)
-        
+
+    def button_release(self, event: Event, cell: int) -> None:
+        """Function called when the mouse of a user is released."""
+        # Reset mouse variables
+        self.mouse_pressed_down = False
+        self.cell_pressed = -1
+        if self.ignore_release:
+            self.ignore_release = False
+            return
+
+        self.play_turn(cell)
 
     def button_press(self, event: Event, cell: int) -> None:
         """Function called when the mouse of a user is pressed."""
@@ -93,3 +119,34 @@ class TTTGame:
         # ignore the release event that occurs (unless they reenter the cell they left).
         if self.mouse_pressed_down:
             self.ignore_release = True
+
+    def listen(self) -> None:
+        """Listens to microphone for cell number or description."""
+        print("Listening...")
+        with sr.mic as source:
+            audio = sr.recognizer.listen(source)
+        print("Detected word")
+        
+        with open("src/test_speech/tempAudio.wav", "wb") as f:
+            f.write(audio.get_wav_data())
+            result = sr.model.transcribe(f.name)
+        
+        self.voice_command(result["text"])
+
+    def voice_command(self, speech: str) -> None:
+        """Function that is called when user says a word."""
+        # Remove any trailing whitespace and punctuation
+        speech = speech.strip()
+        if speech[-1] in "?!.":
+            speech = speech[:-1]
+
+        cell = self.CELL_HOTWORDS.get(speech.lower())
+        if cell is not None:
+            # This is being run in a seperate thread, so generate an event so that
+            # Tk altering code is run on the main thread. The altering code being
+            # drawing on the canvas (add_x, add_o)
+            self.cell_from_voice = cell
+            self.grid.event_generate("<<Voice-Command>>")
+        else:
+            print("Voice command [{}] not recognized".format(speech))  # TODO:
+
