@@ -11,12 +11,16 @@ class TTTGame:
     ----------
     cell_pressed : int
         Number of the current cell being pressed.
-    mouse_pressed_down : boolean
+    mouse_pressed_down : bool
         Indicator to if the mouse button is pressed down (not released).
-    ignore_release : boolean
+    ignore_release : bool
         Indicator to whether a release event by the mouse should be ignored.
     grid : TTTGrid
         Canvas class representing the tic-tac-toe grid.
+    squares : list[str]
+        List representing a tic-tac-toe grid.
+    turn : str
+        Either 'x' or 'o'. Tells whose turn it is.
     """
 
     # FOR VOICE COMMANDS
@@ -73,7 +77,6 @@ class TTTGame:
         # and cell number can be found in self.cell_from_voice.
         if cell == -1:
             cell = self.cell_from_voice
-            self.cell_from_voice = -1  # Reset it.
 
         # Check if cell is empty
         if self.squares[cell] == "":
