@@ -4,8 +4,8 @@ Module that handles the application window.
 
 from ttt_grid import TTTGrid
 from game_logic import TTTGame
-from tkinter import *
-from tkinter.ttk import *
+from tkinter import Tk
+from tkinter.ttk import Frame, Button, Label
 
 
 class Window(Tk):

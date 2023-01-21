@@ -3,7 +3,6 @@ Starts the application.
 """
 from window import Window
 import speech_rec
-from threading import Thread
 
 
 def start() -> None:
