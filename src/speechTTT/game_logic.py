@@ -114,7 +114,7 @@ class TTTGame:
         # Reset mouse variables.
         self.mouse_pressed_down = False
         self.cell_pressed = -1
-        if (not self.audio_only) and self.ignore_release:
+        if self.audio_only or self.ignore_release:
             self.ignore_release = False
             return
 
