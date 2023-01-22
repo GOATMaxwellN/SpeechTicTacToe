@@ -5,7 +5,7 @@ def init():
     global model, recognizer, mic
 
     print("Loading model...")
-    model = whisper.load_model("tiny.en")
+    model = whisper.load_model("base.en")
     recognizer = speech_recognition.Recognizer()
     mic = speech_recognition.Microphone()
 

@@ -13,21 +13,33 @@ class TTTGame:
     cell_pressed : int
         Number of the current cell being pressed.
     mouse_pressed_down : bool
-        Indicator to if the mouse button is pressed down (not released).
+        Flag to if the mouse button is pressed down (not released).
     ignore_release : bool
-        Indicator to whether a release event by the mouse should be ignored.
+        Flag to whether a release event by the mouse should be ignored.
     grid : TTTGrid
         Canvas class representing the tic-tac-toe grid.
     squares : list[str]
         List representing a tic-tac-toe grid.
     turn : str
         Either 'x' or 'o'. Tells whose turn it is.
+    cell_from_voice : int
+        Cell that user specifies with their voice.
+    audio_only : bool
+        Flag to whether only audio input should be used for playing ttt.
     """
 
     # FOR VOICE COMMANDS
     # Key is the hotword. Value is the cell number
     CELL_HOTWORDS = {
-        "center": 4
+        **dict.fromkeys(("top left", "one", "1"), 0),
+        **dict.fromkeys(("top middle", "two", "2"), 1),
+        **dict.fromkeys(("top right", "three", "3"), 2),
+        **dict.fromkeys(("left center", "four", "4"), 3),
+        **dict.fromkeys(("center", "five", "5"), 4),
+        **dict.fromkeys(("right center", "six", "6"), 5),
+        **dict.fromkeys(("bottom left", "seven", "7"), 6),
+        **dict.fromkeys(("bottom middle", "eight", "8"), 7),
+        **dict.fromkeys(("bottom right", "nine", "9"), 8)
     }
 
     def __init__(self, grid: TTTGrid):
@@ -41,6 +53,7 @@ class TTTGame:
 
         # Audio variables.
         self.cell_from_voice = -1
+        self.audio_only = True
 
         # Game variables.
         self.squares = ["", "", "", "", "", "", "", "", ""]
@@ -93,13 +106,15 @@ class TTTGame:
             pass
 
         print(self.squares)
+        
+        self.listen()  # Listen for the next turn.
 
     def button_release(self, event: Event, cell: int) -> None:
         """Function called when the mouse of a user is released."""
         # Reset mouse variables.
         self.mouse_pressed_down = False
         self.cell_pressed = -1
-        if self.ignore_release:
+        if (not self.audio_only) and self.ignore_release:
             self.ignore_release = False
             return
 
@@ -136,6 +151,7 @@ class TTTGame:
             f.write(audio.get_wav_data())
             result = sr.model.transcribe(f.name)
         
+        print("Heard [{}]".format(result["text"]))
         self.voice_command(result["text"])
 
     def voice_command(self, speech: str) -> None:
@@ -147,8 +163,8 @@ class TTTGame:
 
         cell = self.CELL_HOTWORDS.get(speech.lower())
         if cell is not None:
-            # This is being run in a seperate thread, so generate an event so that
-            # Tk altering code is run on the main thread. The altering code being
+            # This function is not called on the main thread, so generate an event so that
+            # the Tk altering code is run on the main thread. The altering code being
             # drawing on the canvas (add_x, add_o).
             self.cell_from_voice = cell
             self.grid.event_generate("<<Voice-Command>>")
