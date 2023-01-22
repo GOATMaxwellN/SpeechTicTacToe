@@ -1,6 +1,7 @@
 """This module holds the TTTGame class, which handles the logic"""
 from ttt_grid import TTTGrid
 from tkinter import Event  # For typing purposes.
+from decorators import run_on_another_thread
 import speech_rec as sr
 import threading
 
@@ -33,20 +34,20 @@ class TTTGame:
         self.grid = grid
         self.setup_binds()
 
-        # Mouse variables
+        # Mouse variables.
         self.cell_pressed = -1
         self.mouse_pressed_down = False
         self.ignore_release = False
 
-        # Audio variables
+        # Audio variables.
         self.cell_from_voice = -1
 
-        # Game variables
+        # Game variables.
         self.squares = ["", "", "", "", "", "", "", "", ""]
         self.turn = "x"
 
-        mic_thread = threading.Thread(target=self.listen)
-        mic_thread.start()
+        # Start listening for first turn of the game.
+        self.listen()
 
     def setup_binds(self) -> None:
         """Bind the invisible squares on the grid to the user_clicked() when they
@@ -78,7 +79,7 @@ class TTTGame:
         if cell == -1:
             cell = self.cell_from_voice
 
-        # Check if cell is empty
+        # Check if cell is empty.
         if self.squares[cell] == "":
             self.squares[cell] = self.turn
             if self.turn == "x":
@@ -88,14 +89,14 @@ class TTTGame:
                 self.grid.add_o(cell)
                 self.turn = "x"
         else:
-            # Cell is not empty, so they can't place a symbol here
+            # Cell is not empty, so they can't place a symbol here.
             pass
 
         print(self.squares)
 
     def button_release(self, event: Event, cell: int) -> None:
         """Function called when the mouse of a user is released."""
-        # Reset mouse variables
+        # Reset mouse variables.
         self.mouse_pressed_down = False
         self.cell_pressed = -1
         if self.ignore_release:
@@ -123,6 +124,7 @@ class TTTGame:
         if self.mouse_pressed_down:
             self.ignore_release = True
 
+    @run_on_another_thread
     def listen(self) -> None:
         """Listens to microphone for cell number or description."""
         print("Listening...")
@@ -138,7 +140,7 @@ class TTTGame:
 
     def voice_command(self, speech: str) -> None:
         """Function that is called when user says a word."""
-        # Remove any trailing whitespace and punctuation
+        # Remove any trailing whitespace and punctuation.
         speech = speech.strip()
         if speech[-1] in "?!.":
             speech = speech[:-1]
@@ -147,7 +149,7 @@ class TTTGame:
         if cell is not None:
             # This is being run in a seperate thread, so generate an event so that
             # Tk altering code is run on the main thread. The altering code being
-            # drawing on the canvas (add_x, add_o)
+            # drawing on the canvas (add_x, add_o).
             self.cell_from_voice = cell
             self.grid.event_generate("<<Voice-Command>>")
         else:
